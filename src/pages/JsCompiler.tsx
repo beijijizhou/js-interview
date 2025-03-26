@@ -1,11 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { useQuery } from '@tanstack/react-query';
 
 const JsCompiler = () => {
-  const [code, setCode] = useState("console.log('hello world!');");
+  const { data: generatedCode } = useQuery<string>({
+    queryKey: ['generatedCode'],
+    queryFn: () => '',
+    initialData: "console.log('hello world!');"
+  });
+
+  const [code, setCode] = useState(generatedCode);
   const [output, setOutput] = useState<string[]>([]);
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +41,9 @@ const JsCompiler = () => {
       setOutput([`Error: ${error instanceof Error ? error.message : String(error)}`]);
     }
   };
-
+  useEffect(() => {
+    setCode(generatedCode);
+  }, [generatedCode]);
   return (
     <div style={{ 
       padding: '20px', 

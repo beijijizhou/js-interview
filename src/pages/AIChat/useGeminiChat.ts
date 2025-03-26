@@ -1,6 +1,6 @@
 // src/hooks/useGeminiChat.ts
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 type Message = {
@@ -12,7 +12,8 @@ type Message = {
 export const useGeminiChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [generatedCode, setGeneratedCode] = useState('');
-  
+  const queryClient = useQueryClient();
+
   // Initialize Gemini API
   const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_GOOGLE_GEMINI_API_KEY || '');
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -32,13 +33,14 @@ export const useGeminiChat = () => {
 Question: ${userMessage}`;
 
         const result = await model.generateContent(prompt);
-        const response = await result.response;
+        const response = result.response;
         const text = response.text();
-
         // Extract code from markdown
         const codeBlock = text.match(/```(javascript|js)?\n([\s\S]*?)\n```/);
         const code = codeBlock ? codeBlock[2] : '';
-
+        if (code) {
+          queryClient.setQueryData(['generatedCode'], code);
+        }
         // Add AI response to chat
         const aiMessage: Message = {
           role: 'assistant',
