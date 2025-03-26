@@ -1,5 +1,5 @@
 import { AIChat } from './AIChat'
-import JsCompiler from './JsCompiler'
+// import JsCompiler from './JsCompiler'
 
 export default function Home() {
   return (
