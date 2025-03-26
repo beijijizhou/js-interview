@@ -36,16 +36,26 @@ const JsCompiler = () => {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1>JavaScript Playground</h1>
+    <div style={{ 
+      padding: '20px', 
+      margin: '0',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <h1 style={{ marginBottom: '20px' }}>JavaScript Playground</h1>
       
-      <div ref={editorRef}>
+      <div ref={editorRef} style={{ width: '100%' }}>
         <CodeMirror
           value={code}
           height="300px"
           extensions={[javascript()]}
           onChange={(value) => setCode(value)}
           theme={oneDark}
+          style={{ 
+            textAlign: 'left',
+            fontSize: '14px',
+            border: '1px solid #333',
+            borderRadius: '4px'
+          }}
         />
       </div>
       
@@ -58,7 +68,8 @@ const JsCompiler = () => {
           color: 'white',
           border: 'none',
           borderRadius: '4px',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          fontSize: '14px'
         }}
       >
         Run Code
@@ -66,17 +77,32 @@ const JsCompiler = () => {
       
       <div style={{
         marginTop: '20px',
-        padding: '10px',
+        padding: '15px',
         background: '#1e1e1e',
         color: '#d4d4d4',
         borderRadius: '4px',
         minHeight: '100px',
         fontFamily: 'monospace',
-        whiteSpace: 'pre-wrap'
+        whiteSpace: 'pre-wrap',
+        textAlign: 'left',
+        border: '1px solid #333'
       }}>
-        <h3>Output:</h3>
+        <h3 style={{ 
+          marginTop: '0',
+          marginBottom: '10px',
+          color: '#f0f0f0'
+        }}>
+          Output:
+        </h3>
         {output.length > 0 ? (
-          output.map((line, i) => <div key={i}>{line}</div>)
+          output.map((line, i) => (
+            <div key={i} style={{ 
+              marginBottom: '4px',
+              wordBreak: 'break-word'
+            }}>
+              {line}
+            </div>
+          ))
         ) : (
           <div style={{ color: '#666' }}>No output yet. Run your code to see results.</div>
         )}
