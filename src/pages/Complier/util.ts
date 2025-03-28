@@ -1,4 +1,6 @@
-export const initialCode = `
+export const initialCode = `console.log("hello world");`;
+
+export const TestingCode = `
 console.log("Starting execution");
 function fetchData() {
   return new Promise((resolve, reject) => {
