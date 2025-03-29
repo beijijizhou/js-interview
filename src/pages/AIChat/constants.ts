@@ -92,3 +92,9 @@ export const initialMessage: Message = {
       console.log("Race winner:", result); // Output will be "Fast!"
     });`
 };
+
+export const basicPrompt = `You are a JavaScript coding assistant. Respond with:
+1. A clear explanation
+2. A complete, runnable code example in a single markdown code block
+3. Focus on modern ES6+ syntax
+Question:`;

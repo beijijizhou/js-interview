@@ -66,7 +66,11 @@ const JsCompiler = () => {
       setOutput(prev => [...prev, "Execution completed"]);
     }
   };
-
+  useEffect(()=>{
+    if(generatedCode){
+      setCode(generatedCode)
+    }
+  },[generatedCode])
   return (
     <div className="p-5 font-sans">
       <h1 className="mb-5 text-2xl font-bold">JavaScript Playground</h1>

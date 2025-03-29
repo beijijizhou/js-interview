@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useGeminiChat } from './useGeminiChat';
 import { LoadingButton } from './LoadingButton';
 import { CopyButton } from './CopyButton';
-import Markdown from 'react-markdown'; // Add this dependency
 
 export const AIChat = () => {
   const [input, setInput] = useState('');
@@ -47,14 +46,18 @@ export const AIChat = () => {
                
                   
                 </Markdown> */}
-                {/* <div>
-                {msg.content}
-                </div> */}
+                <div>
+                  {msg.content}
+                </div>
                 {/* Separate code block if it exists */}
                 {msg.code && (
                   <pre className="mt-2 text-sm bg-white p-2 rounded overflow-x-auto">
-                    <code>{msg.code}</code>
+                    <CopyButton textToCopy={generatedCode} />
+
+                    {/* <code>{msg.code}</code> */}
+
                   </pre>
+
                 )}
               </div>
             </div>
@@ -62,18 +65,6 @@ export const AIChat = () => {
         )}
       </div>
 
-      {/* Generated code preview */}
-      {generatedCode && (
-        <div className="mb-4 p-3 bg-gray-100 rounded">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">Generated Code</h3>
-            <CopyButton textToCopy={generatedCode} />
-          </div>
-          <pre className="text-sm bg-white p-2 rounded overflow-x-auto">
-            {generatedCode}
-          </pre>
-        </div>
-      )}
 
       {/* Input form */}
       <form onSubmit={handleSubmit} className="flex gap-2">

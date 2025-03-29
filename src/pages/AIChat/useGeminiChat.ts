@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { initialMessage } from './constants';
+import { basicPrompt} from './constants';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -10,10 +10,10 @@ type Message = {
   code?: string;
 };
 
-
 export const useGeminiChat = () => {
-  const [messages, setMessages] = useState<Message[]>([initialMessage]);
-  const [generatedCode, setGeneratedCode] = useState(initialMessage.code || '');  const queryClient = useQueryClient();
+  const [messages, setMessages] = useState<Message[]>([]); // Include initialMessage if desired
+  const [generatedCode, setGeneratedCode] = useState('');
+  const queryClient = useQueryClient();
 
   const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_GOOGLE_GEMINI_API_KEY || '');
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -24,24 +24,19 @@ export const useGeminiChat = () => {
       setMessages(prev => [...prev, userMessageObj]);
 
       try {
-        const prompt = `You are a JavaScript coding assistant. Respond with:
-1. A clear explanation
-2. A complete, runnable code example in a single markdown code block
-3. Focus on modern ES6+ syntax
+        const userPrompt = basicPrompt + userMessage;
 
-Question: ${userMessage}`;
-
-        const result = await model.generateContent(prompt);
+        const result = await model.generateContent(userPrompt);
         const response = result.response;
         const text = response.text();
 
-        // Extract code from markdown
-        const codeBlockMatch = text.match(/```(javascript|js)?\n([\s\S]*?)\n```/);
-        const code = codeBlockMatch ? codeBlockMatch[2].trim() : '';
-        
-        // Remove code block from text to get clean explanation
+        // Extract code from Markdown code block (```javascript, ```js, or plain ```)
+        const codeMatch = text.match(/```(?:javascript|js)?\n([\s\S]*?)\n```/);
+        const code = codeMatch ? codeMatch[1].trim() : '';
+
+        // Remove the code block from the text to get the explanation
         const explanation = text
-          .replace(/```(javascript|js)?\n([\s\S]*?)\n```/, '')
+          .replace(/```(?:javascript|js)?\n[\s\S]*?\n```/, '')
           .trim();
 
         if (code) {
@@ -51,22 +46,22 @@ Question: ${userMessage}`;
 
         const aiMessage: Message = {
           role: 'assistant',
-          content: explanation, // Store clean text without code block
-          code
+          content: explanation, // Clean text without code block
+          code, // Extracted JavaScript code, if any
         };
-
+        console.log( {explanation})
         setMessages(prev => [...prev, aiMessage]);
         return aiMessage;
       } catch (error) {
         console.error('Gemini API error:', error);
         const errorMessage: Message = {
           role: 'assistant',
-          content: 'Sorry, I encountered an error. Please try again.'
+          content: 'Sorry, I encountered an error. Please try again.',
         };
         setMessages(prev => [...prev, errorMessage]);
         throw error;
       }
-    }
+    },
   });
 
   return {
