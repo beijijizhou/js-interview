@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useGeminiChat } from './useGeminiChat';
 import { LoadingButton } from './LoadingButton';
 import { CopyButton } from './CopyButton';
+import Markdown from 'react-markdown'; // Add this dependency
 
 export const AIChat = () => {
   const [input, setInput] = useState('');
@@ -40,8 +41,21 @@ export const AIChat = () => {
               <div className="font-medium">
                 {msg.role === 'user' ? 'You' : 'Assistant'}
               </div>
-              <div className="mt-1 whitespace-pre-wrap">
+              <div className="mt-1">
+                {/* Render Markdown for text content */}
+                {/* <Markdown className="prose prose-sm max-w-none">
+               
+                  
+                </Markdown> */}
+                {/* <div>
                 {msg.content}
+                </div> */}
+                {/* Separate code block if it exists */}
+                {msg.code && (
+                  <pre className="mt-2 text-sm bg-white p-2 rounded overflow-x-auto">
+                    <code>{msg.code}</code>
+                  </pre>
+                )}
               </div>
             </div>
           ))
@@ -54,7 +68,6 @@ export const AIChat = () => {
           <div className="flex justify-between items-center mb-2">
             <h3 className="font-medium">Generated Code</h3>
             <CopyButton textToCopy={generatedCode} />
-
           </div>
           <pre className="text-sm bg-white p-2 rounded overflow-x-auto">
             {generatedCode}

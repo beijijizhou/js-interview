@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { initialMessage } from './constants';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -9,18 +10,16 @@ type Message = {
   code?: string;
 };
 
-export const useGeminiChat = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [generatedCode, setGeneratedCode] = useState('');
-  const queryClient = useQueryClient();
 
-  // Initialize Gemini API
+export const useGeminiChat = () => {
+  const [messages, setMessages] = useState<Message[]>([initialMessage]);
+  const [generatedCode, setGeneratedCode] = useState(initialMessage.code || '');  const queryClient = useQueryClient();
+
   const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_GOOGLE_GEMINI_API_KEY || '');
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
   const { mutate: sendMessage, isPending } = useMutation({
     mutationFn: async (userMessage: string) => {
-      // Add user message to chat
       const userMessageObj: Message = { role: 'user', content: userMessage };
       setMessages(prev => [...prev, userMessageObj]);
 
@@ -35,26 +34,28 @@ Question: ${userMessage}`;
         const result = await model.generateContent(prompt);
         const response = result.response;
         const text = response.text();
+
         // Extract code from markdown
-        const codeBlock = text.match(/```(javascript|js)?\n([\s\S]*?)\n```/);
-        const code = codeBlock ? codeBlock[2] : '';
+        const codeBlockMatch = text.match(/```(javascript|js)?\n([\s\S]*?)\n```/);
+        const code = codeBlockMatch ? codeBlockMatch[2].trim() : '';
+        
+        // Remove code block from text to get clean explanation
+        const explanation = text
+          .replace(/```(javascript|js)?\n([\s\S]*?)\n```/, '')
+          .trim();
+
         if (code) {
           queryClient.setQueryData(['generatedCode'], code);
+          setGeneratedCode(code);
         }
-        // Add AI response to chat
+
         const aiMessage: Message = {
           role: 'assistant',
-          content: text,
+          content: explanation, // Store clean text without code block
           code
         };
 
         setMessages(prev => [...prev, aiMessage]);
-        
-        // Store the generated code
-        if (code) {
-          setGeneratedCode(code);
-        }
-
         return aiMessage;
       } catch (error) {
         console.error('Gemini API error:', error);

@@ -4,7 +4,7 @@ import JsCompiler from './Complier/JsCompiler'
 export default function Home() {
   return (
     <div>
-      <JsCompiler />
+      {/* <JsCompiler /> */}
       <AIChat />
     </div>
   )
