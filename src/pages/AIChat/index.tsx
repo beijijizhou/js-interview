@@ -1,8 +1,8 @@
 // src/components/AIChat.tsx
 import { useState } from 'react';
 import { useGeminiChat } from './useGeminiChat';
-import { LoadingButton } from './LoadingButton';
 import { CopyButton } from './CopyButton';
+import { SendingButton } from './SendingButton';
 
 export const AIChat = () => {
   const [input, setInput] = useState('');
@@ -76,9 +76,9 @@ export const AIChat = () => {
           className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={isPending}
         />
-        <LoadingButton loading={isPending}>
+        <SendingButton loading={isPending}>
           Send
-        </LoadingButton>
+        </SendingButton>
       </form>
     </div>
   );
