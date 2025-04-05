@@ -1,8 +1,7 @@
 // src/hooks/useGeminiChat.ts
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { basicPrompt} from './constants';
+import { queryAgent } from './api';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -15,8 +14,6 @@ export const useGeminiChat = () => {
   const [generatedCode, setGeneratedCode] = useState('');
   const queryClient = useQueryClient();
 
-  const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_GOOGLE_GEMINI_API_KEY || '');
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
   const { mutate: sendMessage, isPending } = useMutation({
     mutationFn: async (userMessage: string) => {
@@ -24,11 +21,11 @@ export const useGeminiChat = () => {
       setMessages(prev => [...prev, userMessageObj]);
 
       try {
-        const userPrompt = basicPrompt + userMessage;
+      
 
-        const result = await model.generateContent(userPrompt);
-        const response = result.response;
-        const text = response.text();
+        const result = await queryAgent(userMessage);
+        const text = result.response;
+        
 
         // Extract code from Markdown code block (```javascript, ```js, or plain ```)
         const codeMatch = text.match(/```(?:javascript|js)?\n([\s\S]*?)\n```/);
