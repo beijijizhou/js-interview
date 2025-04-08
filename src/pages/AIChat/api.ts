@@ -1,7 +1,7 @@
 // api.ts
 import axios from 'axios';
+import { API_BASE_URL } from '../../util/api';
 
-const API_BASE_URL = 'http://localhost:5000'; // Change if your backend is hosted elsewhere
 
 interface QueryResponse {
   response: string;
