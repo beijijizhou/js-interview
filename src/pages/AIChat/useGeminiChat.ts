@@ -1,7 +1,6 @@
-// src/hooks/useGeminiChat.ts
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { queryAgent } from './api';
+import { queryAgent, QueryResponseChunk } from './api';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -10,29 +9,49 @@ type Message = {
 };
 
 export const useGeminiChat = () => {
-  const [messages, setMessages] = useState<Message[]>([]); // Include initialMessage if desired
+  const [messages, setMessages] = useState<Message[]>([]);
   const [generatedCode, setGeneratedCode] = useState('');
   const queryClient = useQueryClient();
-
 
   const { mutate: sendMessage, isPending } = useMutation({
     mutationFn: async (userMessage: string) => {
       const userMessageObj: Message = { role: 'user', content: userMessage };
       setMessages(prev => [...prev, userMessageObj]);
 
+      let fullText = ''; // Accumulate streamed text
+      let aiMessage: Message = { role: 'assistant', content: '', code: '' };
+
       try {
-      
+        await queryAgent(userMessage, (chunk: QueryResponseChunk) => {
+          if (chunk.response) {
+            fullText += chunk.response; // Build the full response incrementally
+            console.log(fullText)
+            // Update UI with partial content
+            setMessages(prev => {
+              const lastMessage = prev[prev.length - 1];
+              if (lastMessage.role === 'assistant') {
+                // Update existing assistant message
+                return [
+                  ...prev.slice(0, -1),
+                  { ...lastMessage, content: fullText },
+                ];
+              } else {
+                // Add new assistant message
+                aiMessage = { role: 'assistant', content: fullText };
+                return [...prev, aiMessage];
+              }
+            });
+          } else if (chunk.error) {
+            throw new Error(chunk.error);
+          } else if (chunk.warning) {
+            console.warn('Warning:', chunk.warning);
+          }
+        });
 
-        const result = await queryAgent(userMessage);
-        const text = result.response;
-        
-
-        // Extract code from Markdown code block (```javascript, ```js, or plain ```)
-        const codeMatch = text.match(/```(?:javascript|js)?\n([\s\S]*?)\n```/);
+        // Process the final accumulated text
+        const codeMatch = fullText.match(/```(?:javascript|js)?\n([\s\S]*?)\n```/);
         const code = codeMatch ? codeMatch[1].trim() : '';
-
-        // Remove the code block from the text to get the explanation
-        const explanation = text
+        const explanation = fullText
           .replace(/```(?:javascript|js)?\n[\s\S]*?\n```/, '')
           .trim();
 
@@ -41,13 +60,21 @@ export const useGeminiChat = () => {
           setGeneratedCode(code);
         }
 
-        const aiMessage: Message = {
+        aiMessage = {
           role: 'assistant',
-          content: explanation, // Clean text without code block
-          code, // Extracted JavaScript code, if any
+          content: explanation,
+          code,
         };
-        console.log( {explanation})
-        setMessages(prev => [...prev, aiMessage]);
+
+        // Final update to messages with cleaned-up content
+        setMessages(prev => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage.role === 'assistant') {
+            return [...prev.slice(0, -1), aiMessage];
+          }
+          return [...prev, aiMessage];
+        });
+
         return aiMessage;
       } catch (error) {
         console.error('Gemini API error:', error);
@@ -55,7 +82,13 @@ export const useGeminiChat = () => {
           role: 'assistant',
           content: 'Sorry, I encountered an error. Please try again.',
         };
-        setMessages(prev => [...prev, errorMessage]);
+        setMessages(prev => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage.role === 'assistant') {
+            return [...prev.slice(0, -1), errorMessage];
+          }
+          return [...prev, errorMessage];
+        });
         throw error;
       }
     },
