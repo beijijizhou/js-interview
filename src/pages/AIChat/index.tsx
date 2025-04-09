@@ -19,7 +19,7 @@ export const AIChat = () => {
     sendMessage(input);
     setInput('');
   };
-
+  
   return (
     <div className="max-w-2xl mx-auto p-4 bg-white rounded-lg shadow">
       <h2 className="text-xl font-bold mb-4">JavaScript AI Assistant</h2>
@@ -46,8 +46,10 @@ export const AIChat = () => {
                
                   
                 </Markdown> */}
-                <div>
+                <div className="whitespace-pre-wrap">
+
                   {msg.content}
+
                 </div>
                 {/* Separate code block if it exists */}
                 {msg.code && (
