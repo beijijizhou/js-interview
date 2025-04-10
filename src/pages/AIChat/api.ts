@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "../../util/api";
+
 // src/hooks/api.ts
 export interface QueryResponseChunk {
   response?: string;
@@ -6,7 +8,7 @@ export interface QueryResponseChunk {
 }
 
 export const queryAgent = async (prompt: string, onChunk: (chunk: QueryResponseChunk) => void): Promise<void> => {
-  const response = await fetch('http://localhost:5000/query', {
+  const response = await fetch(`${API_BASE_URL}/query`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt }),
