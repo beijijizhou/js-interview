@@ -5,6 +5,7 @@ export interface QueryResponseChunk {
   response?: string;
   error?: string;
   warning?: string;
+  function_call?:string;
 }
 
 export const queryAgent = async (prompt: string, onChunk: (chunk: QueryResponseChunk) => void): Promise<void> => {
@@ -31,9 +32,7 @@ export const queryAgent = async (prompt: string, onChunk: (chunk: QueryResponseC
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
-      console.log(lines)
       buffer = lines.pop() || '';
-
       for (const line of lines) {
         if (line.trim()) {
           const chunk: QueryResponseChunk = JSON.parse(line);

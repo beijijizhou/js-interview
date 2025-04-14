@@ -5,12 +5,13 @@ import { CopyButton } from './CopyButton';
 import { SendingButton } from './SendingButton';
 
 export const AIChat = () => {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState('what is promise');
   const {
     messages,
     generatedCode,
     sendMessage,
     isPending,
+    functionCall,
   } = useGeminiChat();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -19,7 +20,6 @@ export const AIChat = () => {
     sendMessage(input);
     setInput('');
   };
-  
   return (
     <div className="max-w-2xl mx-auto p-4 bg-white rounded-lg shadow">
       <h2 className="text-xl font-bold mb-4">JavaScript AI Assistant</h2>
@@ -41,11 +41,7 @@ export const AIChat = () => {
                 {msg.role === 'user' ? 'You' : 'Assistant'}
               </div>
               <div className="mt-1">
-                {/* Render Markdown for text content */}
-                {/* <Markdown className="prose prose-sm max-w-none">
-               
-                  
-                </Markdown> */}
+                {functionCall && <div>{functionCall}</div>}
                 <div className="whitespace-pre-wrap">
 
                   {msg.content}

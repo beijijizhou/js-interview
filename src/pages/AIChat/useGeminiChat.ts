@@ -11,6 +11,7 @@ type Message = {
 export const useGeminiChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [generatedCode, setGeneratedCode] = useState('');
+  const [functionCall, setFunctionCall] = useState('');
   const queryClient = useQueryClient();
 
   const { mutate: sendMessage, isPending } = useMutation({
@@ -20,12 +21,12 @@ export const useGeminiChat = () => {
 
       let fullText = ''; // Accumulate streamed text
       let aiMessage: Message = { role: 'assistant', content: '', code: '' };
-
       try {
         await queryAgent(userMessage, (chunk: QueryResponseChunk) => {
+          // console.log(chunk)
+
           if (chunk.response) {
             fullText += chunk.response; // Build the full response incrementally
-            console.log(fullText)
             // Update UI with partial content
             setMessages(prev => {
               const lastMessage = prev[prev.length - 1];
@@ -41,7 +42,13 @@ export const useGeminiChat = () => {
                 return [...prev, aiMessage];
               }
             });
-          } else if (chunk.error) {
+          }
+          else if(chunk.function_call){
+            console.log(chunk.function_call)
+            setFunctionCall(chunk.function_call);
+            
+          }
+          else if (chunk.error) {
             throw new Error(chunk.error);
           } else if (chunk.warning) {
             console.warn('Warning:', chunk.warning);
@@ -93,12 +100,12 @@ export const useGeminiChat = () => {
       }
     },
   });
-
   return {
     messages,
     generatedCode,
     sendMessage,
     isPending,
     setMessages,
+    functionCall,
   };
 };
