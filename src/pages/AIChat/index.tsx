@@ -26,6 +26,8 @@ export const AIChat = () => {
 
       {/* Chat messages */}
       <div className="mb-4 space-y-4 max-h-96 overflow-y-auto">
+      {/* {functionCall && <div>{functionCall}</div>} */}
+
         {messages.length === 0 ? (
           <p className="text-gray-500">Ask me anything about JavaScript...</p>
         ) : (
@@ -41,7 +43,6 @@ export const AIChat = () => {
                 {msg.role === 'user' ? 'You' : 'Assistant'}
               </div>
               <div className="mt-1">
-                {functionCall && <div>{functionCall}</div>}
                 <div className="whitespace-pre-wrap">
 
                   {msg.content}
