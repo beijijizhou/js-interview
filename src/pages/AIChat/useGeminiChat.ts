@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryAgent, QueryResponseChunk } from './api';
 
-type Message = {
+export interface Message {
   role: 'user' | 'assistant';
   content: string;
   code?: string;
+  id?: number,
 };
 
 export const useGeminiChat = () => {
@@ -16,7 +17,7 @@ export const useGeminiChat = () => {
 
   const { mutate: sendMessage, isPending } = useMutation({
     mutationFn: async (userMessage: string) => {
-      const userMessageObj: Message = { role: 'user', content: userMessage };
+      const userMessageObj: Message = { role: 'user', content: userMessage, id: 0, };
       setMessages(prev => [...prev, userMessageObj]);
 
       let fullText = ''; // Accumulate streamed text
@@ -43,10 +44,10 @@ export const useGeminiChat = () => {
               }
             });
           }
-          else if(chunk.function_call){
+          else if (chunk.function_call) {
             console.log(chunk.function_call)
             setFunctionCall(chunk.function_call);
-            
+
           }
           else if (chunk.error) {
             throw new Error(chunk.error);
