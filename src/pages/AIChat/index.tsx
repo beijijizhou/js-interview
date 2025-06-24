@@ -8,7 +8,7 @@ export const AIChat = () => {
   const [input, setInput] = useState('what is promise');
   const [editID, setEditID] = useState<number | null>(null);
   const [editedContent, setEditedContent] = useState<string>(''); // Track edited content
-  const { messages, sendMessage, isPending } = useGeminiChat();
+  const { messages, sendMessage, isPending, setMessages, } = useGeminiChat();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,9 +19,14 @@ export const AIChat = () => {
   };
 
   const handleEdit = (id: number, newContent?: string) => {
+    console.log(`Editing message with ID: ${id}`);
     if (newContent !== undefined) {
-      // Save edited content
+
       console.log(`Saving message with ID: ${id}, New content: ${newContent}`);
+      setMessages(messages
+        .filter(msg => msg.id <= id) // Keep messages up to and including edited message
+        .map(msg => (msg.id === id ? { ...msg, content: newContent } : msg))
+      );
       // Update messages (example; adjust based on useGeminiChat)
       // setMessages(messages.map(msg => msg.id === id ? { ...msg, content: newContent } : msg));
       setEditID(null); // Exit edit mode
@@ -53,11 +58,10 @@ export const AIChat = () => {
           messages.map((msg, i) => (
             <div
               key={i}
-              className={`p-3 rounded-lg ${
-                msg.role === 'user'
+              className={`p-3 rounded-lg ${msg.role === 'user'
                   ? 'bg-blue-50 text-blue-900 ml-auto max-w-[80%]'
                   : 'bg-gray-50 text-gray-900 mr-auto max-w-[80%]'
-              }`}
+                }`}
             >
               <div className="font-medium">{msg.role === 'user' ? 'You' : 'Assistant'}</div>
               <div className="mt-2 group relative p-3 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -76,7 +80,7 @@ export const AIChat = () => {
                         onClick={() => msg.id !== undefined && handleEdit(msg.id, editedContent)}
                         disabled={msg.id === undefined}
                       >
-                        Save
+                        Update
                       </button>
                       <button
                         className="bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium px-3 py-1 rounded-md shadow-sm"

@@ -6,8 +6,8 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   code?: string;
-  id?: number,
-};
+  id: number;
+}
 
 export const useGeminiChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -17,15 +17,24 @@ export const useGeminiChat = () => {
 
   const { mutate: sendMessage, isPending } = useMutation({
     mutationFn: async (userMessage: string) => {
-      const userMessageObj: Message = { role: 'user', content: userMessage, id: 0, };
+      // Use messages.length as the id for user message
+      const userMessageObj: Message = {
+        role: 'user',
+        content: userMessage,
+        id: messages.length,
+      };
       setMessages(prev => [...prev, userMessageObj]);
 
       let fullText = ''; // Accumulate streamed text
-      let aiMessage: Message = { role: 'assistant', content: '', code: '' };
+      let aiMessage: Message = {
+        role: 'assistant',
+        content: '',
+        code: '',
+        id: messages.length + 1, // Next id for assistant message
+      };
+
       try {
         await queryAgent(userMessage, (chunk: QueryResponseChunk) => {
-          // console.log(chunk)
-
           if (chunk.response) {
             fullText += chunk.response; // Build the full response incrementally
             // Update UI with partial content
@@ -39,17 +48,13 @@ export const useGeminiChat = () => {
                 ];
               } else {
                 // Add new assistant message
-                aiMessage = { role: 'assistant', content: fullText };
                 return [...prev, aiMessage];
               }
             });
-          }
-          else if (chunk.function_call) {
-            console.log(chunk.function_call)
+          } else if (chunk.function_call) {
+            console.log(chunk.function_call);
             setFunctionCall(chunk.function_call);
-
-          }
-          else if (chunk.error) {
+          } else if (chunk.error) {
             throw new Error(chunk.error);
           } else if (chunk.warning) {
             console.warn('Warning:', chunk.warning);
@@ -72,6 +77,7 @@ export const useGeminiChat = () => {
           role: 'assistant',
           content: explanation,
           code,
+          id: aiMessage.id, // Retain original id
         };
 
         // Final update to messages with cleaned-up content
@@ -89,6 +95,7 @@ export const useGeminiChat = () => {
         const errorMessage: Message = {
           role: 'assistant',
           content: 'Sorry, I encountered an error. Please try again.',
+          id: messages.length, // Use current length for error message
         };
         setMessages(prev => {
           const lastMessage = prev[prev.length - 1];
@@ -101,6 +108,7 @@ export const useGeminiChat = () => {
       }
     },
   });
+
   return {
     messages,
     generatedCode,
